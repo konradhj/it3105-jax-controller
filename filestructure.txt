@@ -1,0 +1,18 @@
+project/
+├─ Layer 0: Entry + Config
+│  ├─ main.py
+│  └─ config/
+│
+├─ Layer 1: Orchestration (System)
+│  └─ consys/        (simulate + train)
+│
+├─ Layer 2A: AI Component
+│  └─ controllers/
+│
+├─ Layer 2B: Domain Component
+│  └─ plants/
+│
+└─ Layer 3: Evidence (Transparency)
+   ├─ viz/
+   └─ outputs/
+   
