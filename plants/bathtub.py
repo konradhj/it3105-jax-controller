@@ -36,4 +36,4 @@ def step(H, U, D, cfg):
     dH = (U + D - Q) / A        # from the equation in the PDF
     H_next = jnp.maximum(H + dt * dH, 0.0)
 
-    return H_next, H_next
+    return H_next
