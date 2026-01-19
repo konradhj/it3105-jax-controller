@@ -27,7 +27,7 @@ disturbance:
   d_max: 0.02
 
 controller:
-  name: pid_classic
+  name: pid_nn
   init:
     kp: 0.1
     ki: 0.0
@@ -41,4 +41,4 @@ controller:
 train:
   epochs: 200
   timesteps: 200
-  lr: 0.05
+  lr: 0.001
