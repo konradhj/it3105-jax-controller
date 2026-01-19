@@ -1,39 +1,29 @@
 import jax.numpy as jnp
 
+from plants.base import Plant
+
 g = 9.81
-# Velocity of water exiting through drain V = sqrt(2*g*H) H is height
-
-def reset(cfg):
-    H0 = cfg['plant']['params']['H0']
-    return jnp.asarray(H0, dtype=jnp.float32)
 
 
-def step(H, U, D, cfg):
-    """
-    One timestep of the bathtub dynamics.
+class Bathtub(Plant):
+    def reset(self, cfg):
+        h0 = cfg["plant"]["params"]["H0"]
+        return jnp.asarray(h0, dtype=jnp.float32)
 
-    Args:
-        H: current water height
-        U: controller inflow (faucet) this step
-        D: disturbance/noise inflow (can be negative) this step
-        cfg: config dict containing plant parameters
+    def output(self, state, cfg):
+        return state
 
-    Returns:
-        H_next: next height
-    """
+    def step(self, state, u, d, cfg):
+        p = cfg["plant"]["params"]
+        a = jnp.asarray(p["A"], dtype=jnp.float32)
+        c = jnp.asarray(p["C"], dtype=jnp.float32)
+        dt = jnp.asarray(p.get("dt", 1.0), dtype=jnp.float32)
 
-    p = cfg["plant"]["params"]
-    A = jnp.asarray(p["A"], dtype=jnp.float32)
-    C = jnp.asarray(p["C"], dtype=jnp.float32)
-    dt = jnp.asarray(p.get("dt", 1.0), dtype=jnp.float32)
+        h = jnp.maximum(state, 0.0)
+        h_safe = jnp.maximum(h, 1e-6)
+        v = jnp.sqrt(2.0 * g * h_safe)
+        q = v * c
 
-    # Prevent negative height (and sqrt issues)
-    H = jnp.maximum(H, 0.0)
-
-    V = jnp.sqrt(2.0 * g * H)   # drain speed
-    Q = V * C                   # outflow rate
-
-    dH = (U + D - Q) / A        # from the equation in the PDF
-    H_next = jnp.maximum(H + dt * dH, 0.0)
-
-    return H_next
+        dh = (u + d - q) / a
+        h_next = jnp.maximum(h + dt * dh, 0.0)
+        return h_next

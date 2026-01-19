@@ -1,9 +1,11 @@
-from plants.bathtub import reset as bathtub_reset, step as bathtub_step
-# later: from plants.tank2 import reset as tank2_reset, step as tank2_step
+from plants.bathtub import Bathtub
+from plants.cournot import Cournot
+from plants.logistic import LogisticPopulation
 
 _PLANTS = {
-    "bathtub": (bathtub_reset, bathtub_step),
-    # "tank2": (tank2_reset, tank2_step),
+    "bathtub": Bathtub(),
+    "cournot": Cournot(),
+    "logistic": LogisticPopulation(),
 }
 
 def get_plant(name: str):

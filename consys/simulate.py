@@ -1,6 +1,7 @@
 import jax
 import jax.numpy as jnp
 
+from controller import get_controller
 from plants import get_plant
 
 
@@ -12,20 +13,22 @@ def sample_disturbance(cfg, key, timesteps):
 
 
 def simulate(cfg):
-    timesteps = int(cfg['train']['timesteps'])
+    timesteps = int(cfg["train"]["timesteps"])
     target = jnp.asarray(cfg["plant"]["target"], dtype=jnp.float32)
-    
-    plant_name = cfg["plant"]["name"]
-    plant_reset, plant_step = get_plant(plant_name)
+
+    plant = get_plant(cfg["plant"]["name"])
+    controller = get_controller(cfg["controller"]["name"])
 
     seed = int(cfg["run"]["seed"])
     key = jax.random.PRNGKey(seed)
-    
-    state = plant_reset(cfg)
+    key, key_params, key_dist = jax.random.split(key, 3)
+
+    params = controller.init_params(cfg, key_params)
+    ctrl_state = controller.init_state(cfg)
+    plant_state = plant.reset(cfg)
 
     # sample all disturbances up front
-    key, subkey = jax.random.split(key)
-    D_traj = sample_disturbance(cfg, subkey, timesteps)
+    D_traj = sample_disturbance(cfg, key_dist, timesteps)
 
     # logs
     H_traj = []
@@ -33,15 +36,14 @@ def simulate(cfg):
     e_traj = []
 
     for timestep in range(timesteps):
-        e = target - state
+        y = plant.output(plant_state, cfg)
+        e = target - y
 
-        # no controller yet
-        U = jnp.asarray(0.0, dtype=jnp.float32)
+        u, ctrl_state = controller.step(params, ctrl_state, e, cfg)
+        plant_state = plant.step(plant_state, u, D_traj[timestep], cfg)
 
-        state = plant_step(state, U, D_traj[timestep], cfg)
-
-        H_traj.append(state)
-        U_traj.append(U)
+        H_traj.append(plant_state)
+        U_traj.append(u)
         e_traj.append(e)
 
     H_traj = jnp.stack(H_traj)
@@ -50,4 +52,13 @@ def simulate(cfg):
 
     mse = jnp.mean(e_traj ** 2)
 
-    return {"H": H_traj, "U": U_traj, "D": D_traj, "e": e_traj, "mse": mse, "final_H": state}
+    final_y = plant.output(plant_state, cfg)
+    return {
+        "H": H_traj,
+        "U": U_traj,
+        "D": D_traj,
+        "e": e_traj,
+        "mse": mse,
+        "final_y": final_y,
+        "final_state": plant_state,
+    }

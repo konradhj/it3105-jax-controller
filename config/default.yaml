@@ -6,9 +6,21 @@ plant:
   name: bathtub
   target: 1.0
   params:
-    A: 1.0    # Cross sectional area of bathtub
-    C: 0.01   # Cross sectional area of drain
-    H0: 0.5   # Height of water in the beginning
+    # Bathtub
+    A: 1.0    # Cross sectional area
+    C: 0.01   # Drain area
+    H0: 0.5   # Initial height
+
+    # Cournot
+    pmax: 1.0
+    cm: 0.1
+    q1_0: 0.5
+    q2_0: 0.5
+
+    # Logistic population (third plant)
+    r: 0.2
+    K: 1.0
+    N0: 0.5
 
 disturbance:
   d_min: -0.02
@@ -20,6 +32,11 @@ controller:
     kp: 0.1
     ki: 0.0
     kd: 0.0
+  nn:
+    layers: [8, 8]
+    activations: ["tanh", "tanh"]
+    init_min: -0.1
+    init_max: 0.1
 
 train:
   epochs: 200
