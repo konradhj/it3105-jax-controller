@@ -1,0 +1,27 @@
+run:
+  name: run1
+  seed: 0
+
+plant:
+  name: bathtub
+  target: 1.0
+  params:
+    A: 1.0    # Cross sectional area of bathtub
+    C: 0.01   # Cross sectional area of drain
+    H0: 0.5   # Height of water in the beginning
+
+disturbance:
+  d_min: -0.02
+  d_max: 0.02
+
+controller:
+  name: pid_classic
+  init:
+    kp: 0.1
+    ki: 0.0
+    kd: 0.0
+
+train:
+  epochs: 200
+  timesteps: 200
+  lr: 0.05
